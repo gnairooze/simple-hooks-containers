@@ -3,11 +3,7 @@
 # exit on error
 set -e
 
-while true
-do  
-  sleep 60
-done
-
+export PATH=$PATH:/opt/mssql-tools/bin
 
 cd dbs-setup
 
