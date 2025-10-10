@@ -35,12 +35,6 @@ services:
       simple-hooks-dbs:
         condition: service_healthy
     env_file: "simplehooks-production.env"
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 60s
     volumes:
       - ./dbs-setup:/dbs-setup
     entrypoint: /bin/bash
@@ -55,19 +49,12 @@ services:
     ports:
       - "8071:8071"  # Direct access for testing
     depends_on:
-      simple-hooks-dbs-setup:
-        condition: service_healthy
+      - simple-hooks-dbs-setup
     env_file:
       - simple-identity-server-production.env
     environment:
       # Instance-specific configuration (only values that need to be different per instance)
       - SIMPLE_IDENTITY_SERVER_NODE_NAME=simple-identity-api-instance-1
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8071/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     volumes:
       - ./certs:/app/certs
     networks:
@@ -79,8 +66,7 @@ services:
     image: gnairooze/simple-identity-server:cli-0.5-beta-1
     container_name: simple-hooks-identity-config
     depends_on:
-      identity-api-instance-1:
-        condition: service_healthy
+      - identity-api-instance-1
     env_file:
       - simple-identity-server-production.env
     healthcheck:
