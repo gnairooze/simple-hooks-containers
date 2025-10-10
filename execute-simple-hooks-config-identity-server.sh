@@ -3,8 +3,11 @@
 # exit on error
 set -e
 
-# exit if already run before
-if [ -f /completed ]; then
+value="$(dotnet SimpleIdentityServer.CLI.dll app get --client-id "postman-client-admin" | grep "Display Name: simple-hooks api postman client admin")"
+
+echo "value: $value"
+# exit if already run before - value is not empty
+if [ -n "$value" ]; then
   echo "Simple Identity Server configuration already completed"
   exit 0
 fi
@@ -33,4 +36,3 @@ dotnet SimpleIdentityServer.CLI.dll app add --client-id "postman-client-load-def
 # add support client have all permissions
 dotnet SimpleIdentityServer.CLI.dll app add --client-id "postman-client-admin" --client-secret "P@ssw0rdP@ssw0rd" --display-name "simple-hooks api postman client admin" --permissions "ept:token" --permissions "ept:introspection" --permissions "gt:client_credentials" --permissions "scp:simplehooks_api.trigger_event" --permissions "scp:simplehooks_api.load_definitions" --permissions "scp:simplehooks_api.get_event_instance_status"
 
-touch /completed
