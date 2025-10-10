@@ -35,6 +35,12 @@ services:
       simple-hooks-dbs:
         condition: service_healthy
     env_file: "simplehooks-production.env"
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
     volumes:
       - ./dbs-setup:/dbs-setup
     entrypoint: /bin/bash

@@ -7,7 +7,7 @@ services:
     ports:
       - "8051:80"
     depends_on:
-      simple-hooks-dbs:
+      simple-hooks-dbs-setup:
         condition: service_healthy
     env_file:
       - simplehooks-production.env
@@ -64,7 +64,7 @@ services:
     image: gnairooze/simple-hooks:proc-2.8.2
     container_name: simple-hooks-processor-1
     depends_on:
-      simple-hooks-dbs:
+      simple-hooks-dbs-setup:
         condition: service_healthy
     env_file:
       - simplehooks-production.env
@@ -81,7 +81,7 @@ services:
     ports:
       - "8071:8071"  # Direct access for testing
     depends_on:
-      simple-hooks-dbs:
+      simple-hooks-dbs-setup:
         condition: service_healthy
     env_file:
       - simple-identity-server-production.env
@@ -101,7 +101,7 @@ services:
     ports:
       - "5011:5011"
     depends_on:
-      simple-hooks-dbs:
+      simple-hooks-dbs-setup:
         condition: service_healthy
     volumes:
       - ./sample-listener/appsettings.json:/app/appsettings.json:ro
@@ -112,6 +112,7 @@ services:
 
   simple-hooks-dbs:
     image: mcr.microsoft.com/mssql/server:2022-CU21-ubuntu-22.04
+    user: root
     container_name: simple-hooks-dbs
     deploy:
       resources:
@@ -121,6 +122,12 @@ services:
     ports:
       - "14335:1433"
     env_file: "simple-hooks-dbs-production.env"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'sample@Strong23Password' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
     networks:
       simple-hooks-net:
         ipv4_address: 172.27.0.41
@@ -137,8 +144,14 @@ services:
       simple-hooks-dbs:
         condition: service_healthy
     env_file: "simplehooks-production.env"
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
     volumes:
-      - ./dbs-setup:/dbs-setup:ro
+      - ./dbs-setup:/dbs-setup
     entrypoint: /bin/bash
     command: /dbs-setup/wait-and-run-all.sh
     networks:

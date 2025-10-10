@@ -30,3 +30,5 @@ cd ..
 cd sample-listener-db
 ./execute-sample-db-schema-sql.sh
 cd ..
+
+touch completed
