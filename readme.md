@@ -7,16 +7,15 @@ All you have to do in your app is to trigger the event you want, by calling Simp
 
 Simple-Hooks will call all the subscribers, with the event data and retry on them in case of failure.
 
-
 you can find the source code in the [SimpleHooks](https://github.com/gnairooze/SimpleHooks) repository.
 
 ## Getting Started
 
 use one of the following docker-compose files to run the solution.
 
-### docker-compose-with-sql.yml
+### docker-compose.yml
 
-the docker-compose-with-sql.yml file contains the following services:
+the docker-compose.yml file contains the following services:
 
 1. simple-hooks-web-1: anonymous simple-hooks web api
 2. simple-hooks-authapi-1: authenticated simple-hooks web api
@@ -30,24 +29,23 @@ the docker-compose-with-sql.yml file contains the following services:
 run the following command in the directory containing the docker-compose.yml file:
 
 ```bash
-docker-compose -f docker-compose-with-sql.yml up -d
+docker-compose up -d
 ```
+
 it will take at least 40 seconds to run the containers for the first time.
 
-### docker-compose.yml without sql server
+### docker-compose-without-sql.yml
 
 #### Prerequisites
 
-this image depends on SQL server, which should have 2 databases:
+- this image depends on SQL server, details of the databases can be found in [dbs-setup readme](https://github.com/gnairooze/simple-hooks-containers/blob/main/dbs-setup/readme.md).
 
-- SimpleHooks_Log_DB: for logs. it is created by executing the scripts in [github log-db](https://github.com/gnairooze/SimpleHooks/tree/main/code/SQL/log-db). for more details please check the [readme file](https://github.com/gnairooze/SimpleHooks/blob/main/README.md).
-- SimpleHooks: the main operation db. it is created by executing the scripts in [github main-db](https://github.com/gnairooze/SimpleHooks/tree/main/code/SQL/operation-db). for more details please check the [readme file](https://github.com/gnairooze/SimpleHooks/blob/main/README.md).
-
-both should be created before running the container.
+- the identity server should be configured for simple-hooks. details of the configuration can be found in [dbs-setup readme](https://github.com/gnairooze/simple-hooks-containers/blob/main/dbs-setup/readme.md). also
 
 #### using docker compose
 
-the docker-compose.yml file contains 5 services:
+docker-compose-without-sql.yml file contains 5 services:
+
 1. simple-hooks-web-1: anonymous simple-hooks web api
 2. simple-hooks-authapi-1: authenticated simple-hooks web api
 3. simple-hooks-processor-1: simple-hooks server processor
@@ -55,10 +53,10 @@ the docker-compose.yml file contains 5 services:
 5. simple-hooks-sample-listener-1: a sample listener api to test the solution
 
 all the services needs sql server databases.
-run the following command in the directory containing the docker-compose.yml file:
+run the following command in the directory containing the docker-compose-without-sql.yml file:
 
 ```bash
-docker-compose up -d
+docker-compose -f docker-compose-without-sql.yml up -d
 ```
 
 ## simple-hooks endpoints
