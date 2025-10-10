@@ -7,8 +7,7 @@ services:
     ports:
       - "8051:80"
     depends_on:
-      simple-hooks-dbs-setup:
-        condition: service_healthy
+      - simple-hooks-dbs-setup
     env_file:
       - simplehooks-production.env
     environment:
@@ -29,10 +28,7 @@ services:
     extra_hosts:
       - "identity.dev.test:172.27.0.31"
     depends_on:
-      identity-api-instance-1:
-        condition: service_healthy
-      simple-hooks-dbs:
-        condition: service_healthy
+      - simple-hooks-identity-config
     env_file:
       - simplehooks-production.env
     environment:
@@ -64,8 +60,7 @@ services:
     image: gnairooze/simple-hooks:proc-2.8.2
     container_name: simple-hooks-processor-1
     depends_on:
-      simple-hooks-dbs-setup:
-        condition: service_healthy
+      - simple-hooks-dbs-setup
     env_file:
       - simplehooks-production.env
     volumes:
@@ -81,8 +76,7 @@ services:
     ports:
       - "8071:8071"  # Direct access for testing
     depends_on:
-      simple-hooks-dbs-setup:
-        condition: service_healthy
+      - simple-hooks-dbs-setup
     env_file:
       - simple-identity-server-production.env
     environment:
@@ -101,8 +95,7 @@ services:
     ports:
       - "5011:5011"
     depends_on:
-      simple-hooks-dbs-setup:
-        condition: service_healthy
+      - simple-hooks-dbs-setup
     volumes:
       - ./sample-listener/appsettings.json:/app/appsettings.json:ro
     networks:
@@ -144,12 +137,6 @@ services:
       simple-hooks-dbs:
         condition: service_healthy
     env_file: "simplehooks-production.env"
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 60s
     volumes:
       - ./dbs-setup:/dbs-setup
     entrypoint: /bin/bash
@@ -157,6 +144,27 @@ services:
     networks:
       simple-hooks-net:
         ipv4_address: 172.27.0.42
+
+  simple-hooks-identity-config:
+    image: gnairooze/simple-identity-server:cli-0.5-beta-1
+    container_name: simple-hooks-identity-config
+    depends_on:
+      - identity-api-instance-1
+    env_file:
+      - simple-identity-server-production.env
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
+    volumes:
+      - ./execute-simple-hooks-config-identity-server.sh:/app/execute-simple-hooks-config-identity-server.sh
+    entrypoint: /bin/bash
+    command: /app/execute-simple-hooks-config-identity-server.sh
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.43
 
 networks:
   simple-hooks-net:
