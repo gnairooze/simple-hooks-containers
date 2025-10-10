@@ -3,14 +3,22 @@
 # exit on error
 set -e
 
-value="$(dotnet SimpleIdentityServer.CLI.dll app get --client-id "postman-client-admin" | grep "Display Name: simple-hooks api postman client admin")"
+# sleep for 20 seconds to make sure the identity server is ready
+echo "Sleeping for 20 seconds to make sure the identity server is ready"
+sleep 20
 
-echo "value: $value"
+echo "starting configuration"
+
+#echo "Checking if configuration already run before"
+
+#value="$(dotnet SimpleIdentityServer.CLI.dll app get --client-id "postman-client-admin" | grep "Display Name: simple-hooks api postman client admin")"
+
+#echo "value: $value"
 # exit if already run before - value is not empty
-if [ -n "$value" ]; then
-  echo "Simple Identity Server configuration already completed"
-  exit 0
-fi
+#if [ -n "$value" ]; then
+#  echo "Simple Identity Server configuration already completed"
+#  exit 0
+#fi
 
 # add the simplehooks api scopes
 dotnet SimpleIdentityServer.CLI.dll scope add --name "simplehooks_api" --display-name "resource simple hooks api" --resources "simplehooks_api"
