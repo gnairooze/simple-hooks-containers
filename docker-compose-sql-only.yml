@@ -49,7 +49,7 @@ services:
       simple-hooks-net:
         ipv4_address: 172.27.0.42
 
-identity-api-instance-1:
+  identity-api-instance-1:
     image: gnairooze/simple-identity-server:0.5
     container_name: identity-server-api
     ports:
