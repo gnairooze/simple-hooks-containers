@@ -96,7 +96,6 @@ services:
     networks:
       simple-hooks-net:
         ipv4_address: 172.27.0.43
-    restart: unless-stopped
 
 networks:
   simple-hooks-net:

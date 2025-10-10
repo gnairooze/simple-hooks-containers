@@ -3,6 +3,12 @@
 # exit on error
 set -e
 
+# exit if already run before
+if [ -f /completed ]; then
+  echo "Simple Identity Server configuration already completed"
+  exit 0
+fi
+
 # add the simplehooks api scopes
 dotnet SimpleIdentityServer.CLI.dll scope add --name "simplehooks_api" --display-name "resource simple hooks api" --resources "simplehooks_api"
 
