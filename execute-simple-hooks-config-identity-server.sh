@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd simple-identity-server-cli
+# exit on error
+set -e
 
 # add the simplehooks api scopes
 ./SimpleIdentityServer.CLI scope add --name "simplehooks_api" --display-name "resource simple hooks api" --resources "simplehooks_api"
@@ -26,4 +27,4 @@ cd simple-identity-server-cli
 # add support client have all permissions
 ./SimpleIdentityServer.CLI app add --client-id "postman-client-admin" --client-secret "P@ssw0rdP@ssw0rd" --display-name "simple-hooks api postman client admin" --permissions "ept:token" --permissions "ept:introspection" --permissions "gt:client_credentials" --permissions "scp:simplehooks_api.trigger_event" --permissions "scp:simplehooks_api.load_definitions" --permissions "scp:simplehooks_api.get_event_instance_status"
 
-cd ..
+touch completed
