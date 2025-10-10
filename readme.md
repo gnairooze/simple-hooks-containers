@@ -16,7 +16,7 @@ use one of the following docker-compose files to run the solution.
 
 ### docker-compose-with-sql.yml
 
-the docker-compose-with-sql.yml file contains 7 services:
+the docker-compose-with-sql.yml file contains the following services:
 
 1. simple-hooks-web-1: anonymous simple-hooks web api
 2. simple-hooks-authapi-1: authenticated simple-hooks web api
@@ -24,13 +24,15 @@ the docker-compose-with-sql.yml file contains 7 services:
 4. identity-api-instance-1: identity server api using openiddict
 5. simple-hooks-sample-listener-1: a sample listener api to test the solution
 6. simple-hooks-dbs: a sql server instance for simple-hooks, sample listener and identity server databases.
-7. simple-hooks-dbs-setup: a one-time setup container to create the databases and initial data.
+7. simple-hooks-dbs-setup: a one-time setup container to create the databases and initial data. after that, it will exit.
+8. simple-hooks-identity-config: a one-time setup container to configure the identity server for simple-hooks. after that, it will exit.
 
 run the following command in the directory containing the docker-compose.yml file:
 
 ```bash
 docker-compose -f docker-compose-with-sql.yml up -d
 ```
+it will take at least 40 seconds to run the containers for the first time.
 
 ### docker-compose.yml without sql server
 
@@ -41,7 +43,7 @@ this image depends on SQL server, which should have 2 databases:
 - SimpleHooks_Log_DB: for logs. it is created by executing the scripts in [github log-db](https://github.com/gnairooze/SimpleHooks/tree/main/code/SQL/log-db). for more details please check the [readme file](https://github.com/gnairooze/SimpleHooks/blob/main/README.md).
 - SimpleHooks: the main operation db. it is created by executing the scripts in [github main-db](https://github.com/gnairooze/SimpleHooks/tree/main/code/SQL/operation-db). for more details please check the [readme file](https://github.com/gnairooze/SimpleHooks/blob/main/README.md).
 
-both should be created before running the container. 
+both should be created before running the container.
 
 #### using docker compose
 
@@ -58,3 +60,47 @@ run the following command in the directory containing the docker-compose.yml fil
 ```bash
 docker-compose up -d
 ```
+
+## simple-hooks endpoints
+
+add the following line to your hosts file:
+
+```hosts
+127.0.0.1 identity.dev.test
+```
+
+after the containers are running, you can access the following endpoints:
+
+### anonymous simple-hooks web api
+
+- http://localhost:8051/api/TriggerEvent: trigger an event.
+
+- http://localhost:8051/api/eventinstance/get-status?businessid={{event-instance-business-id}}: read the status of an event instance.
+
+- http://localhost:8051/api/definitions/load-definitions: load the definitions.
+
+### authenticated simple-hooks web api
+
+- https://identity.dev.test:8071/connect/token: get token from identity server api.
+
+- http://localhost:8052/api/TriggerEvent: trigger an event using the token.
+
+- http://localhost:8052/api/eventinstance/get-status?businessid={{event-instance-business-id}}: read the status of an event instance using the token.
+
+- http://localhost:8052/api/definitions/load-definitions: load the definitions using the token.
+
+### sample listener api
+
+- http://localhost:5011/api/sample: post event data to sample listener api.
+
+### identity server api
+
+- https://identity.dev.test:8071/connect/token: get token from identity server api.
+
+- http://localhost:8071/connect/userinfo: identity server api userinfo endpoint
+
+- https://identity.dev.test:8071/connect/introspect: identity server api introspect endpoint
+
+- https://identity.dev.test:8071/.well-known/openid-configuration: identity server api openid configuration endpoint
+
+- https://identity.dev.test:8071/.well-known/jwks: identity server api jwks endpoint
