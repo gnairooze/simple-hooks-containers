@@ -1,0 +1,57 @@
+name: simple-hooks-sql-only
+
+services:
+  simple-hooks-dbs:
+    image: mcr.microsoft.com/mssql/server:2022-CU21-ubuntu-22.04
+    user: root
+    container_name: simple-hooks-dbs
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    ports:
+      - "14335:1433"
+    env_file: "simple-hooks-dbs-production.env"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'sample@Strong23Password' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.41
+    volumes:
+      - simple-hooks-dbs_data:/var/opt/mssql/data
+      - simple-hooks-dbs_log:/var/opt/mssql/log
+      - simple-hooks-dbs_secrets:/var/opt/mssql/secrets
+    restart: unless-stopped
+
+  simple-hooks-dbs-setup:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: simple-hooks-dbs-setup
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file: "simplehooks-production.env"
+    volumes:
+      - ./dbs-setup:/dbs-setup
+    entrypoint: /bin/bash
+    command: /dbs-setup/wait-and-run-all.sh
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.42
+
+networks:
+  simple-hooks-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
+          gateway: 172.27.0.1
+
+volumes:
+  simple-hooks-dbs_data:
+  simple-hooks-dbs_log:
+  simple-hooks-dbs_secrets:

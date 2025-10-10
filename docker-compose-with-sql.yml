@@ -1,0 +1,159 @@
+name: simple-hooks-full
+
+services:
+  simple-hooks-web-1:
+    image: gnairooze/simple-hooks:web-2.8.2
+    container_name: simple-hooks-web-1
+    ports:
+      - "8051:80"
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file:
+      - simplehooks-production.env
+    environment:
+      # Instance-specific configuration (only values that need to be different per instance)
+      - SIMPLE_HOOKS_WEB_NODE_NAME=simple-hooks-web-1
+    volumes:
+      - ./web/appsettings.json:/app/appsettings.json:ro
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.11
+    restart: unless-stopped
+
+  simple-hooks-authapi-1:
+    image: gnairooze/simple-hooks:authapi-2.8.2
+    container_name: simple-hooks-authapi-1
+    ports:
+      - "8052:80"
+    extra_hosts:
+      - "identity.dev.test:172.27.0.31"
+    depends_on:
+      identity-api-instance-1:
+        condition: service_healthy
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file:
+      - simplehooks-production.env
+    environment:
+      # Instance-specific configuration (only values that need to be different per instance)
+      - SIMPLE_HOOKS_AUTHAPI_NODE_NAME=simple-hooks-authapi-1
+      # SSL/TLS Configuration
+      - SSL_CERT_DIR=/usr/local/share/ca-certificates
+      - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=0
+    volumes:
+      - ./authapi/appsettings.json:/app/appsettings.json:ro
+      - ./certs:/app/certs:ro
+    entrypoint: >
+      sh -c "
+        if [ -f /app/certs/identity-dev-test-ca.crt ]; then
+          cp /app/certs/identity-dev-test-ca.crt /usr/local/share/ca-certificates/identity-dev-test-ca.crt &&
+          update-ca-certificates &&
+          echo 'CA certificate installed successfully';
+        else
+          echo 'Warning: CA certificate not found at /app/certs/identity-dev-test-ca.crt';
+        fi &&
+        exec dotnet SimpleHooks.AuthApi.dll
+      "
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.16
+    restart: unless-stopped
+
+  simple-hooks-processor-1:
+    image: gnairooze/simple-hooks:proc-2.8.2
+    container_name: simple-hooks-processor-1
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file:
+      - simplehooks-production.env
+    volumes:
+      - ./server/appsettings.json:/app/appsettings.json:ro
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.21
+    restart: unless-stopped
+
+  identity-api-instance-1:
+    image: gnairooze/simple-identity-server:0.5
+    container_name: identity-server-api
+    ports:
+      - "8071:8071"  # Direct access for testing
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file:
+      - simple-identity-server-production.env
+    environment:
+      # Instance-specific configuration (only values that need to be different per instance)
+      - SIMPLE_IDENTITY_SERVER_NODE_NAME=simple-identity-api-instance-1
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.31
+    restart: unless-stopped
+
+  simple-hooks-sample-listener-1:
+    image: gnairooze/simple-hooks:listener-1.0
+    container_name: simple-hooks-sample-listener-1
+    ports:
+      - "5011:5011"
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    volumes:
+      - ./sample-listener/appsettings.json:/app/appsettings.json:ro
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.111
+    restart: unless-stopped
+
+  simple-hooks-dbs:
+    image: mcr.microsoft.com/mssql/server:2022-CU21-ubuntu-22.04
+    container_name: simple-hooks-dbs
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    ports:
+      - "14335:1433"
+    env_file: "simple-hooks-dbs-production.env"
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.41
+    volumes:
+      - simple-hooks-dbs_data:/var/opt/mssql/data
+      - simple-hooks-dbs_log:/var/opt/mssql/log
+      - simple-hooks-dbs_secrets:/var/opt/mssql/secrets
+    restart: unless-stopped
+
+  simple-hooks-dbs-setup:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: simple-hooks-dbs-setup
+    depends_on:
+      simple-hooks-dbs:
+        condition: service_healthy
+    env_file: "simplehooks-production.env"
+    volumes:
+      - ./dbs-setup:/dbs-setup:ro
+    entrypoint: /bin/bash
+    command: /dbs-setup/wait-and-run-all.sh
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.42
+
+networks:
+  simple-hooks-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
+          gateway: 172.27.0.1
+
+volumes:
+  simple-hooks-dbs_data:
+  simple-hooks-dbs_log:
+  simple-hooks-dbs_secrets:
