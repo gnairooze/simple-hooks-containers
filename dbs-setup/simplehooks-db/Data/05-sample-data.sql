@@ -87,7 +87,7 @@ insert ListenerDefinition
 values
 (
 	2,
-	'sample listener',
+	'sample auth listener',
 	2,
 	'SIMPLE_HOOKS_LISTENER_PLUGIN_SAMPLE_OPTIONS',
 	1,
