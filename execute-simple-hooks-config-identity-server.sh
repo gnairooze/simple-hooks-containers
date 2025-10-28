@@ -44,3 +44,12 @@ dotnet SimpleIdentityServer.CLI.dll app add --client-id "postman-client-load-def
 # add support client have all permissions
 dotnet SimpleIdentityServer.CLI.dll app add --client-id "postman-client-admin" --client-secret "P@ssw0rdP@ssw0rd" --display-name "simple-hooks api postman client admin" --permissions "ept:token" --permissions "ept:introspection" --permissions "gt:client_credentials" --permissions "scp:simplehooks_api.trigger_event" --permissions "scp:simplehooks_api.load_definitions" --permissions "scp:simplehooks_api.get_event_instance_status"
 
+# add the sample listener api scopes
+dotnet SimpleIdentityServer.CLI.dll scope add --name "samplelistener_api.sample" --display-name "post data to sample listener api" --resources "samplelistener_api"
+
+# add the sample listener api client
+dotnet SimpleIdentityServer.CLI.dll app add --client-id "samplelistener_api" --client-secret "P@ssw0rdP@ssw0rd" --display-name "sample listener resource api" --permissions "ept:introspection"
+
+# add client to post sample data
+dotnet SimpleIdentityServer.CLI.dll app add --client-id "client-sample" --client-secret "P@ssw0rdP@ssw0rd" --display-name "sample-listener api client to post data to sample" --permissions "ept:token" --permissions "ept:introspection" --permissions "gt:client_credentials" --permissions "scp:samplelistener_api.sample"
+
