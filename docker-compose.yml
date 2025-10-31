@@ -2,7 +2,7 @@ name: simple-hooks-full
 
 services:
   simple-hooks-web-1:
-    image: gnairooze/simple-hooks:web-3.0.1
+    image: gnairooze/simple-hooks:web-3.0.3
     container_name: simple-hooks-web-1
     ports:
       - "8051:80"
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   simple-hooks-authapi-1:
-    image: gnairooze/simple-hooks:authapi-3.0.1
+    image: gnairooze/simple-hooks:authapi-3.0.3
     container_name: simple-hooks-authapi-1
     ports:
       - "8052:80"
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   simple-hooks-processor-1:
-    image: gnairooze/simple-hooks:proc-3.0.1
+    image: gnairooze/simple-hooks:proc-3.0.3
     container_name: simple-hooks-processor-1
     depends_on:
       - simple-hooks-dbs-setup
