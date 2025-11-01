@@ -26,7 +26,7 @@ services:
     extra_hosts:
       - "identity.dev.test:172.27.0.31"
     depends_on:
-      - identity-api-instance-1
+      - simple-hooks-identity-config
     env_file:
       - simplehooks-production.env
     environment:
@@ -100,7 +100,7 @@ services:
     restart: unless-stopped
 
   simple-hooks-sample-listener-1:
-    image: gnairooze/simple-hooks:listener-1.0
+    image: gnairooze/simple-hooks:listener-2.0
     container_name: simple-hooks-sample-listener-1
     ports:
       - "5011:5011"
@@ -128,6 +128,28 @@ services:
       simple-hooks-net:
         ipv4_address: 172.27.0.111
     restart: unless-stopped
+
+  simple-hooks-identity-config:
+    image: gnairooze/simple-identity-server:cli-0.5-beta-1
+    container_name: simple-hooks-identity-config
+    depends_on:
+      - identity-api-instance-1
+    env_file:
+      - simple-identity-server-production.env
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f \"completed\" ] || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
+    volumes:
+      - ./execute-simple-hooks-config-identity-server.sh:/app/execute-simple-hooks-config-identity-server.sh
+    entrypoint: /bin/bash
+    command: /app/execute-simple-hooks-config-identity-server.sh
+    networks:
+      simple-hooks-net:
+        ipv4_address: 172.27.0.43
+
 networks:
   simple-hooks-net:
     driver: bridge
