@@ -2,7 +2,7 @@ name: simple-hooks-full
 
 services:
   simple-hooks-web-1:
-    image: gnairooze/simple-hooks:web-2.8.3
+    image: gnairooze/simple-hooks:web-3.0.3
     container_name: simple-hooks-web-1
     ports:
       - "8051:80"
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   simple-hooks-authapi-1:
-    image: gnairooze/simple-hooks:authapi-2.8.3
+    image: gnairooze/simple-hooks:authapi-3.0.3
     container_name: simple-hooks-authapi-1
     ports:
       - "8052:80"
@@ -57,14 +57,30 @@ services:
     restart: unless-stopped
 
   simple-hooks-processor-1:
-    image: gnairooze/simple-hooks:proc-2.8.3
+    image: gnairooze/simple-hooks:proc-3.0.3
     container_name: simple-hooks-processor-1
+    extra_hosts:
+      - "identity.dev.test:172.27.0.31"
     depends_on:
       - simple-hooks-dbs-setup
     env_file:
       - simplehooks-production.env
+    environment:
+      - SSL_CERT_DIR=/usr/local/share/ca-certificates
     volumes:
       - ./server/appsettings.json:/app/appsettings.json:ro
+      - ./certs:/app/certs:ro
+    entrypoint: >
+      sh -c "
+        if [ -f /app/certs/identity-dev-test-ca.crt ]; then
+          cp /app/certs/identity-dev-test-ca.crt /usr/local/share/ca-certificates/identity-dev-test-ca.crt &&
+          update-ca-certificates &&
+          echo 'CA certificate installed successfully';
+        else
+          echo 'Warning: CA certificate not found at /app/certs/identity-dev-test-ca.crt';
+        fi &&
+        exec ./simple-hooks-task.sh
+      "
     networks:
       simple-hooks-net:
         ipv4_address: 172.27.0.21
@@ -90,14 +106,32 @@ services:
     restart: unless-stopped
 
   simple-hooks-sample-listener-1:
-    image: gnairooze/simple-hooks:listener-1.0
+    image: gnairooze/simple-hooks:listener-2.0
     container_name: simple-hooks-sample-listener-1
     ports:
       - "5011:5011"
+    extra_hosts:
+      - "identity.dev.test:172.27.0.31"
     depends_on:
       - simple-hooks-dbs-setup
+    environment:
+      # SSL/TLS Configuration
+      - SSL_CERT_DIR=/usr/local/share/ca-certificates
+      - DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=0
     volumes:
       - ./sample-listener/appsettings.json:/app/appsettings.json:ro
+      - ./certs:/app/certs:ro
+    entrypoint: >
+      sh -c "
+        if [ -f /app/certs/identity-dev-test-ca.crt ]; then
+          cp /app/certs/identity-dev-test-ca.crt /usr/local/share/ca-certificates/identity-dev-test-ca.crt &&
+          update-ca-certificates &&
+          echo 'CA certificate installed successfully';
+        else
+          echo 'Warning: CA certificate not found at /app/certs/identity-dev-test-ca.crt';
+        fi &&
+        exec dotnet SampleListenerAPI.dll
+      "
     networks:
       simple-hooks-net:
         ipv4_address: 172.27.0.111

@@ -6,6 +6,9 @@ SQL_USERNAME="sa"
 SQL_PASSWORD="sample@Strong23Password"
 
 echo "creating sample db ..."
-sqlcmd -S "$SERVER_NAME" -i "create-db-schema.sql" -U "$SQL_USERNAME" -P "$SQL_PASSWORD" -C
+sqlcmd -S "$SERVER_NAME" -i "create-db.sql" -U "$SQL_USERNAME" -P "$SQL_PASSWORD" -C
 
-echo "All SQL files have been executed." 
+echo "creating sample objects ..."
+sqlcmd -S "$SERVER_NAME" -i "create-db-objects.sql" -U "$SQL_USERNAME" -P "$SQL_PASSWORD" -C
+
+echo "All SQL files have been executed."
